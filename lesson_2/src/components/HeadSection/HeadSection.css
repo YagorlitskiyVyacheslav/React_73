@@ -1,0 +1,9 @@
+.head {
+  padding: 20px;
+  color: #fff;
+}
+
+.head__description {
+  margin: 0;
+  font-size: 18px;
+}
