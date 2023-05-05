@@ -15,8 +15,13 @@ export const Title = styled.h5`
   font-size: 16px;
   margin: 0;
   line-height: 18px;
-  text-transform: capitalize;
 `;
+
+export const SubTitle = styled(Title).attrs((props) => ({
+  as: "h2",
+  title: "Sub title",
+  className: props.addClass,
+}))``;
 
 export const Checkbox = styled.p`
   margin: 0;
