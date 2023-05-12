@@ -1,0 +1,101 @@
+import React, { Component } from "react";
+import { Todo } from "./Todo";
+import { ActionsWrapper, List, Wrapper } from "./styled";
+import { AddTodo } from "../AddTodo/AddTodo";
+import { Input } from "../common/inputs/Input";
+import uniqid from "uniqid";
+import { todosApi } from "../../api";
+
+export class Todos extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      search: "",
+      todos: [],
+      isLoading: true,
+      error: "",
+      filteredTodos: [],
+    };
+  }
+
+  async componentDidMount() {
+    this.getTodosAsync();
+  }
+
+  getSnapshotBeforeUpdate() {
+    return {
+      scrollY: window.scrollY,
+    };
+  }
+
+  componentDidUpdate(_, prevState, snapshot) {
+    const { todos, search } = this.state;
+    if (prevState.search !== search) {
+      this.setState({
+        filteredTodos: todos.filter((todo) =>
+          todo.title.toLowerCase().includes(search.toLowerCase())
+        ),
+      });
+    }
+    setTimeout(() => {
+      window.scrollTo({
+        top: snapshot.scrollY,
+        behavior: "smooth",
+      });
+    }, 0);
+  }
+
+  async getTodosAsync() {
+    try {
+      this.setState({ isLoading: true });
+      const todos = await todosApi.get();
+      this.setState({
+        todos,
+        filteredTodos: todos,
+      });
+    } catch (error) {
+      this.setState({ error });
+    } finally {
+      this.setState({
+        isLoading: false,
+      });
+    }
+  }
+
+  handleChange = ({ target: { value: search } }) => {
+    this.setState({
+      search,
+    });
+  };
+
+  handleSubmit = (formData) => {
+    this.setState((prevState) => {
+      return {
+        todos: prevState.todos.concat({ ...formData, id: uniqid() }),
+      };
+    });
+  };
+
+  render() {
+    const { handleChange, handleSubmit, state } = this;
+
+    return (
+      <Wrapper>
+        <ActionsWrapper>
+          <Input placeholder="Search..." onChange={handleChange} />
+          <AddTodo onSubmit={handleSubmit} />
+        </ActionsWrapper>
+        {state.error && <div style={{ marginTop: 20 }}>{state.error}</div>}
+        {state.isLoading ? (
+          <div style={{ marginTop: 20 }}>Loading...</div>
+        ) : (
+          <List>
+            {state.filteredTodos.map((item) => (
+              <Todo {...item} key={item.id} />
+            ))}
+          </List>
+        )}
+      </Wrapper>
+    );
+  }
+}
