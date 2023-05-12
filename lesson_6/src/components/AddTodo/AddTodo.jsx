@@ -13,18 +13,10 @@ export class AddTodo extends Component {
     }));
   };
 
-  handleSubmit = (e) => {
-    e.preventDefault();
-    const { title, description, priority } = this.state;
-    this.props.onSubmit({ title, description, priority });
-    this.toggleModalHandler();
-  };
-
   render() {
     const {
       toggleModalHandler,
       state: { openModal },
-      handleSubmit,
     } = this;
     return (
       <>
@@ -33,7 +25,7 @@ export class AddTodo extends Component {
           <AddTodoModal
             onClose={toggleModalHandler}
             open={openModal}
-            onSubmit={handleSubmit}
+            onSubmit={this.props.onSubmit}
           />
         )}
       </>

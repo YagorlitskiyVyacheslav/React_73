@@ -3,23 +3,25 @@ import { Todo } from "./Todo";
 import { ActionsWrapper, List, Wrapper } from "./styled";
 import { AddTodo } from "../AddTodo/AddTodo";
 import { Input } from "../common/inputs/Input";
-import uniqid from "uniqid";
-import { todosApi } from "../../api";
+import { todosApi } from "../../api/todos";
+import { QUERY } from "../../constants/localStorage";
 
 export class Todos extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      search: "",
+      query: "",
       todos: [],
-      isLoading: true,
+      isLoading: false,
       error: "",
-      filteredTodos: [],
     };
   }
 
-  async componentDidMount() {
-    this.getTodosAsync();
+  componentDidMount() {
+    this.getTodosAsync(localStorage.getItem(QUERY));
+    this.setState({
+      query: localStorage.getItem(QUERY),
+    });
   }
 
   getSnapshotBeforeUpdate() {
@@ -29,14 +31,6 @@ export class Todos extends Component {
   }
 
   componentDidUpdate(_, prevState, snapshot) {
-    const { todos, search } = this.state;
-    if (prevState.search !== search) {
-      this.setState({
-        filteredTodos: todos.filter((todo) =>
-          todo.title.toLowerCase().includes(search.toLowerCase())
-        ),
-      });
-    }
     setTimeout(() => {
       window.scrollTo({
         top: snapshot.scrollY,
@@ -45,53 +39,50 @@ export class Todos extends Component {
     }, 0);
   }
 
-  async getTodosAsync() {
+  getTodosAsync = async (query) => {
     try {
       this.setState({ isLoading: true });
-      const todos = await todosApi.get();
+      const todos = await todosApi.get(query);
       this.setState({
         todos,
-        filteredTodos: todos,
       });
     } catch (error) {
-      this.setState({ error });
-    } finally {
       this.setState({
-        isLoading: false,
+        error: error.message,
       });
+    } finally {
+      this.setState({ isLoading: false });
     }
-  }
-
-  handleChange = ({ target: { value: search } }) => {
-    this.setState({
-      search,
-    });
   };
 
-  handleSubmit = (formData) => {
-    this.setState((prevState) => {
-      return {
-        todos: prevState.todos.concat({ ...formData, id: uniqid() }),
-      };
+  handleChange = ({ target: { value: query } }) => {
+    this.getTodosAsync(query);
+    localStorage.setItem(QUERY, query);
+    this.setState({
+      query,
     });
   };
 
   render() {
-    const { handleChange, handleSubmit, state } = this;
+    const { handleChange, getTodosAsync, state } = this;
 
     return (
       <Wrapper>
         <ActionsWrapper>
-          <Input placeholder="Search..." onChange={handleChange} />
-          <AddTodo onSubmit={handleSubmit} />
+          <Input
+            placeholder="Search..."
+            value={state.query}
+            onChange={handleChange}
+          />
+          <AddTodo onSubmit={getTodosAsync} />
         </ActionsWrapper>
         {state.error && <div style={{ marginTop: 20 }}>{state.error}</div>}
         {state.isLoading ? (
           <div style={{ marginTop: 20 }}>Loading...</div>
         ) : (
           <List>
-            {state.filteredTodos.map((item) => (
-              <Todo {...item} key={item.id} />
+            {state.todos.map((item) => (
+              <Todo onDelete={getTodosAsync} {...item} key={item.id} />
             ))}
           </List>
         )}

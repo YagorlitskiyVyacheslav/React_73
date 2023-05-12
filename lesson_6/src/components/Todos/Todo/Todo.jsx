@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { todosApi } from "../../../api/todos";
 import {
   Checkbox,
   DeleteButton,
@@ -9,6 +10,21 @@ import {
 } from "./styled";
 
 export class Todo extends Component {
+  state = {
+    error: "",
+  };
+
+  onDelete = async () => {
+    try {
+      await todosApi.deleteTodo(this.props.id);
+      this.props.onDelete();
+    } catch (error) {
+      this.setState({
+        error: error.message,
+      });
+    }
+  };
+
   render() {
     const { title, description, priority, completed } = this.props;
     return (

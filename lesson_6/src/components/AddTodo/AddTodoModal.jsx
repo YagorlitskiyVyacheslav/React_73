@@ -1,4 +1,5 @@
 import { Component } from "react";
+import { todosApi } from "../../api/todos";
 import { Button } from "../common/Button";
 import { Input } from "../common/inputs/Input";
 import { InputGroup } from "../common/inputs/InputGroup";
@@ -25,11 +26,8 @@ export class AddTodoModal extends Component {
     title: "",
     description: "",
     priority: "hight",
+    error: "",
   };
-
-  shouldComponentUpdate(_, nextState) {
-    return nextState.priority !== "medium";
-  }
 
   handleChange = (e) => {
     this.setState({
@@ -43,16 +41,40 @@ export class AddTodoModal extends Component {
     });
   };
 
+  async addTodoAsync(todo) {
+    try {
+      await todosApi.post(todo);
+      this.props.onSubmit();
+    } catch (error) {
+      this.setState({
+        error: error.message,
+      });
+    }
+  }
+
+  handleSubmit = (event) => {
+    event.preventDefault();
+    const { title, description, priority } = this.state;
+
+    this.addTodoAsync({
+      title,
+      description,
+      priority,
+      completed: false,
+    });
+  };
+
   render() {
     const {
       state: { title, description, priority },
       handleChange,
       handleSelect,
+      handleSubmit,
     } = this;
-    const { onClose, open, onSubmit } = this.props;
+    const { onClose, open } = this.props;
     return (
       <BaseModal title="Add todo" isOpen={open} close={onClose}>
-        <form onSubmit={onSubmit}>
+        <form onSubmit={handleSubmit}>
           <InputGroup>
             <Input
               onChange={handleChange}
