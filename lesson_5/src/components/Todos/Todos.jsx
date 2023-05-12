@@ -3,12 +3,11 @@ import { Todo } from "./Todo";
 import { ActionsWrapper, List, Wrapper } from "./styled";
 import { AddTodo } from "../AddTodo/AddTodo";
 import { Input } from "../common/inputs/Input";
-import debounce from "lodash.debounce";
 import uniqid from "uniqid";
 import { todosApi } from "../../api";
 
 const onScrollEvent = () => {
-  console.log(window.scrollY);
+  // console.log(window.scrollY);
 };
 
 export class Todos extends Component {
@@ -31,7 +30,7 @@ export class Todos extends Component {
 
   getSnapshotBeforeUpdate() {
     return {
-      qwe: "qwe",
+      scrollY: window.scrollY,
     };
   }
 
@@ -45,6 +44,12 @@ export class Todos extends Component {
         ),
       });
     }
+    setTimeout(() => {
+      window.scrollTo({
+        top: snapshot.scrollY,
+        behavior: "smooth",
+      });
+    }, 0);
   }
 
   componentWillUnmount() {
@@ -89,10 +94,7 @@ export class Todos extends Component {
     return (
       <Wrapper>
         <ActionsWrapper>
-          <Input
-            placeholder="Search..."
-            onChange={debounce(handleChange, 1000)}
-          />
+          <Input placeholder="Search..." onChange={handleChange} />
           <AddTodo onSubmit={handleSubmit} />
         </ActionsWrapper>
         {state.error && <div style={{ marginTop: 20 }}>{state.error}</div>}

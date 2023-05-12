@@ -27,6 +27,11 @@ export class AddTodoModal extends Component {
     priority: "hight",
   };
 
+  shouldComponentUpdate(_, nextState) {
+    console.log(nextState);
+    return nextState.priority !== "medium";
+  }
+
   handleChange = (e) => {
     this.setState({
       [e.target.name]: e.target.value,
